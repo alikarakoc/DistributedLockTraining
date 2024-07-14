@@ -31,7 +31,6 @@ namespace DistributedLockTraining.Application.Features.Products.Commands
                 Data = true,
             };
             ;
-            Console.WriteLine($"İstek geldi {DateTime.Now}");
             await using var _lock = await _lockFactory.CreateLockAsync($"Product_{request.ProductId}", TimeSpan.FromSeconds(5));
             if (_lock.IsAcquired)
             {
@@ -40,7 +39,6 @@ namespace DistributedLockTraining.Application.Features.Products.Commands
                 var product = await _productRepository.GetAsync(request.ProductId);
                 if (stockResponse.Data >= request.Quantity)
                 {
-                    Console.WriteLine($"Aktif stok {stockResponse.Data} {DateTime.Now}");
 
                     if (request.Quantity <= product.MaxStockQuantity)
                     {
@@ -53,13 +51,14 @@ namespace DistributedLockTraining.Application.Features.Products.Commands
                             response.ResponseType = ResponseType.Error;
                             response.IsSuccessful = false;
                             response.Data = false;
-                            Console.WriteLine($"{request.Quantity} adet satış gerçekleşti. {DateTime.Now}");
+                            return response;
                         }
                         else
                         {
                             var stockUpdateQuery = new UpdateProductStockCommand { ProductId = request.ProductId, Quantity = request.Quantity };
                             var stockUpdate = await _mediator.Send(stockUpdateQuery, cancellationToken);
                             Console.WriteLine($"Stok güncellendi. {DateTime.Now}");
+                            return response;
                         }
                     }
                     else
@@ -67,8 +66,8 @@ namespace DistributedLockTraining.Application.Features.Products.Commands
                         response.IsSuccessful = false;
                         response.Data = false;
                         response.Errors = new List<string>() { "Maksimum stok saatış sınırı aşıldı!" };
-                        Console.WriteLine($"Maksimum stok saatış sınırı aşıldı {DateTime.Now}");
-
+                        Console.WriteLine($"Maksimum stok saatış sınırı aşıldı Talep : {request.Quantity} Kalan Stok : {product.TotalStock} {DateTime.Now}");
+                        return response;
                     }
                 }
                 else
@@ -76,7 +75,7 @@ namespace DistributedLockTraining.Application.Features.Products.Commands
                     response.IsSuccessful = false;
                     response.Data = false;
                     response.Errors = new List<string>() { "Yetersiz stok." };
-                    Console.WriteLine($"Yetersiz stok. {DateTime.Now}");
+                    Console.WriteLine($"Yetersiz stok. Talep : {request.Quantity} Kalan Stok : {product.TotalStock} {DateTime.Now}");
 
                 }
             }
