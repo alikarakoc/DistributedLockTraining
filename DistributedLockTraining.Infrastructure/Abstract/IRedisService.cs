@@ -8,5 +8,7 @@
         Task<T> GetOrAddAsync<T>(string key, Func<Task<T>> action, int databaseIndex = 0, TimeSpan? expireTime = null) where T : class;
         Task<string> GetValueAsync(string key, int databaseIndex = 0);
         Task<bool> SetValueAsync(string key, string value, int databaseIndex = 0, TimeSpan? expireTime = null);
+        Task<bool> AcquireLockAsync(string key, string lockValue, TimeSpan expiration, int databaseIndex = 0);
+        Task<bool> ReleaseLockAsync(string key, string lockValue, int databaseIndex = 0);
     }
 }

@@ -69,6 +69,17 @@ namespace DistributedLockTraining.Infrastructure.Concrete
             var db = _redisCon.GetDatabase(databaseIndex);
             return await db.StringSetAsync(key, value, expireTime);
         }
+        public async Task<bool> AcquireLockAsync(string key, string lockValue, TimeSpan expiration, int databaseIndex = 0)
+        {
+            var db = _redisCon.GetDatabase(databaseIndex);
+            return await db.LockTakeAsync(key, lockValue, expiration);
+        }
+
+        public async Task<bool> ReleaseLockAsync(string key, string lockValue, int databaseIndex = 0)
+        {
+            var db = _redisCon.GetDatabase(databaseIndex);
+            return await db.LockReleaseAsync(key, lockValue);
+        }
     }
 
 }
